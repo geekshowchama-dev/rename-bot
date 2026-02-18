@@ -4,8 +4,9 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 
 API_ID = int(os.environ["API_ID"])
-API_HASH = os.environ["API_HASH"])
+API_HASH = os.environ["API_HASH"]
 BOT_TOKEN = os.environ["BOT_TOKEN"]
+
 
 app = Client("rename-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
