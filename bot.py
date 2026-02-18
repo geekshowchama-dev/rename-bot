@@ -1,9 +1,7 @@
 import os
-import asyncio
+import time
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from pyrogram.raw.functions.messages import UploadMedia
-from pyrogram.types import InputMediaDocument
 
 API_ID = int(os.environ["API_ID"])
 API_HASH = os.environ["API_HASH"]
@@ -15,6 +13,26 @@ app = Client("fast-rename-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_
 user_files = {}
 user_thumbs = {}
 user_stage = {}
+
+# Progress bar function (20s update)
+async def progress(current, total, message, start, text):
+    now = time.time()
+    diff = now - start
+    if diff < 20:
+        return  # update only every 20s
+
+    percentage = current * 100 / total
+    bar = "█" * int(percentage // 5) + "░" * (20 - int(percentage // 5))
+    speed = current / diff
+
+    try:
+        await message.edit_text(
+            f"{text}\n\n"
+            f"[{bar}] {percentage:.2f}%\n"
+            f"⚡ Speed: {speed/1024/1024:.2f} MB/s"
+        )
+    except:
+        pass
 
 # Step 1: Receive File
 @app.on_message(filters.document)
@@ -34,7 +52,7 @@ async def receive_thumb(client, message: Message):
         user_stage[user_id] = "rename"
         await message.reply("✏️ **Now send your new file name**")
 
-# Step 3: Receive New Name and Upload Fast
+# Step 3: Receive New Name and Upload
 @app.on_message(filters.text)
 async def receive_new_name(client, message: Message):
     user_id = message.from_user.id
@@ -45,19 +63,28 @@ async def receive_new_name(client, message: Message):
     new_name = message.text.strip()
     thumb_path = user_thumbs.get(user_id)
 
-    status = await message.reply("⚡ Streaming upload started...")
+    status = await message.reply("⚡ Downloading & Uploading started...")
 
-    # Extension
-    ext = os.path.splitext(original_msg.document.file_name)[1]
-    final_name = new_name + ext
+    start_download = time.time()
 
-    # Streaming upload using Pyrogram
-    file_path = await original_msg.download(file_name=f"./{final_name}", in_memory=False)
+    # Download with progress (20s interval)
+    file_path = await original_msg.download(
+        file_name=f"./{new_name}{os.path.splitext(original_msg.document.file_name)[1]}",
+        in_memory=False,
+        progress=progress,
+        progress_args=(status, start_download, "📥 Downloading")
+    )
 
+    start_upload = time.time()
+    await status.edit_text("⚡ Uploading started...")
+
+    # Upload with progress (20s interval)
     await message.reply_document(
         document=file_path,
         thumb=thumb_path,
-        caption=f"✅ Renamed to {final_name}"
+        caption=f"✅ Renamed to {new_name}",
+        progress=progress,
+        progress_args=(status, start_upload, "📤 Uploading")
     )
 
     # Cleanup
