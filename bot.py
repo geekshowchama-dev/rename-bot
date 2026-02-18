@@ -1,9 +1,9 @@
 import os
 from pyrogram import Client, filters
 
-API_ID = int(os.getenv("1451534504"))
-API_HASH = os.getenv("047d9ed308172e637d4265e1d9ef0c27")
-BOT_TOKEN = os.getenv("8446033879:AAEjrslTLcXKuCVlIINofVmlwiY5wOqoY24")
+API_ID = int(os.getenv("API_ID"))
+API_HASH = os.getenv("API_HASH")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 app = Client(
     "rename-bot",
