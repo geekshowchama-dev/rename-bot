@@ -46,32 +46,39 @@ async def receive_new_name(client, message: Message):
     if user_stage.get(user_id) != "rename":
         return
 
-    original_msg = user_files[user_id]
-    new_name = message.text.strip()
-    thumb_path = user_thumbs.get(user_id)
+    try:
+        original_msg = user_files[user_id]
+        new_name = message.text.strip()
+        thumb_path = user_thumbs.get(user_id)
 
-    ext = os.path.splitext(original_msg.document.file_name)[1]
-    final_name = new_name + ext
+        ext = os.path.splitext(original_msg.document.file_name)[1]
+        final_name = new_name + ext
 
-    status = await message.reply("⚡ Uploading...")
+        status = await message.reply("⚡ Uploading...")
 
-    # Download file into memory
-    file_bytes = BytesIO()
-    await original_msg.download(file_bytes)
-    file_bytes.seek(0)
+        # Download file into memory
+        file_bytes = BytesIO()
+        await original_msg.download(file_bytes)
+        file_bytes.seek(0)
 
-    # Upload from memory with renamed file
-    await message.reply_document(
-        document=file_bytes,
-        file_name=final_name,
-        thumb=thumb_path,
-        caption=f"✅ Renamed to {final_name}"
-    )
+        # Upload from memory with renamed file
+        await message.reply_document(
+            document=file_bytes,
+            file_name=final_name,
+            thumb=thumb_path,
+            caption=f"✅ Renamed to {final_name}"
+        )
 
-    # Cleanup
-    if thumb_path and os.path.exists(thumb_path):
-        os.remove(thumb_path)
-    user_files.pop(user_id, None)
-    user_thumbs.pop(user_id, None)
-    user_stage.pop(user_id, None)
-    await status.delete()
+        # Cleanup
+        if thumb_path and os.path.exists(thumb_path):
+            os.remove(thumb_path)
+        user_files.pop(user_id, None)
+        user_thumbs.pop(user_id, None)
+        user_stage.pop(user_id, None)
+        await status.delete()
+
+    except Exception as e:
+        await message.reply(f"❌ Upload failed: {e}")
+        user_files.pop(user_id, None)
+        user_thumbs.pop(user_id, None)
+        user_stage.pop(user_id, None)
