@@ -1,7 +1,7 @@
 import os
 from pyrogram import Client, filters
 
-API_ID = int(os.getenv("5047271"))
+API_ID = int(os.getenv("1451534504"))
 API_HASH = os.getenv("047d9ed308172e637d4265e1d9ef0c27")
 BOT_TOKEN = os.getenv("8446033879:AAEjrslTLcXKuCVlIINofVmlwiY5wOqoY24")
 
